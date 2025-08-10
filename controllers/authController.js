@@ -4,17 +4,19 @@ const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 
 exports.register = async (req, res) => {
-  const { email, password, role } = req.body;
+  // Ambil username dari request body
+  const { username, email, password, role } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
+    // Simpan username ke database
     const newUser = await User.create({
+      username,
       email,
       password: hashedPassword,
       role,
     });
     res.status(201).json({ message: 'User berhasil dibuat!', userId: newUser.id });
   } catch (error) {
-    // TAMBAHKAN BARIS INI UNTUK MELIHAT ERROR DI TERMINAL
     console.error('REGISTRATION ERROR:', error);
     res.status(500).json({ message: 'Gagal mendaftar', error: error.message });
   }
@@ -29,14 +31,14 @@ exports.login = async (req, res) => {
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) return res.status(400).json({ message: 'Password salah!' });
 
+    // Sertakan username di dalam token
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, email: user.email, role: user.role, username: user.username },
       'kunci_rahasia_super_aman_jangan_ditiru',
       { expiresIn: '1h' }
     );
-    res.status(200).json({ token, userId: user.id, role: user.role });
+    res.status(200).json({ token }); // Cukup kirim token
   } catch (error) {
-    // TAMBAHKAN JUGA DI SINI
     console.error('LOGIN ERROR:', error);
     res.status(500).json({ message: 'Gagal login', error: error.message });
   }
