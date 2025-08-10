@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "Zikrafdly@123",
+    "database": "ngopiyuk_db",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "postgres",
+    "password": "password_anda",
+    "database": "Zikrafdly@123",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "postgres",
+    "password": "Zikrafdly@123",
+    "database": "ngopiyuk_db_production",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  }
+}
