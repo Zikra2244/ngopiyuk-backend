@@ -3,6 +3,9 @@ const { Cafe } = require('../models'); // Impor model Cafe
 
 // Fungsi untuk mengambil semua data kafe
 const getAllCafes = async (req, res) => {
+  console.log('========================================');
+  console.log('TES: ENDPOINT /api/cafes BERHASIL DIPANGGIL!');
+  console.log('========================================');
   try {
     const cafes = await Cafe.findAll(); // Mengambil semua baris dari tabel Cafes
     res.json(cafes);

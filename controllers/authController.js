@@ -34,7 +34,7 @@ exports.login = async (req, res) => {
     // Sertakan username di dalam token
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role, username: user.username },
-      'kunci_rahasia_super_aman_jangan_ditiru',
+      process.env.JWT_KEY,
       { expiresIn: '1h' }
     );
     res.status(200).json({ token }); // Cukup kirim token

@@ -1,20 +1,26 @@
-
+require('dotenv').config(); // <-- Pastikan ini ada di baris pertama
 const express = require('express');
 const cors = require('cors');
 const db = require('./models'); // Mengimpor manajer model dari ./models/index.js
-
+const path = require('path');
 // Impor rute yang akan kita gunakan
 const cafeRoutes = require('./routes/cafeRoutes');
-
 const authRoutes = require('./routes/authRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 const app = express();
 const port = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors()); // Mengizinkan permintaan dari origin lain (frontend React kita)
-app.use(express.json()); // Memungkinkan server membaca body request dalam format JSON
+app.use(cors({
+  origin: '*', // Izinkan semua origin
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: 'Content-Type,Authorization'
+}));
 
+app.use(express.json()); 
+app.use('/uploads/images', express.static(path.join('uploads', 'images')));
+cafeRoutes.use('/:cafeId/reviews', reviewRoutes);
 
 
 // Rute dasar untuk pengujian
