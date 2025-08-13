@@ -33,6 +33,9 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/cafes', cafeRoutes);
 
+app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes')); 
+
 // Sinkronisasi database dan jalankan server
 db.sequelize.sync().then(() => {
   app.listen(port, () => {
