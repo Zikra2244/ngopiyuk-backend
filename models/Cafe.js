@@ -22,6 +22,10 @@ const Cafe = sequelize.define('Cafe',
     longitude: {
       type: DataTypes.DOUBLE,
       allowNull: false
+    },
+    photoUrl: {
+    type: DataTypes.STRING,
+    allowNull: false // Wajib diisi
     }
   },
 
