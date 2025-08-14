@@ -1,9 +1,23 @@
 const fs = require('fs'); 
-const { Cafe } = require('../models');
+const { Cafe, Review } = require('../models');
+const { Sequelize } = require('sequelize');
 
 const getAllCafes = async (req, res) => {
   try {
-    const cafes = await Cafe.findAll();
+    const cafes = await Cafe.findAll({
+      attributes: {
+        include: [
+          [Sequelize.fn('AVG', Sequelize.col('Reviews.rating')), 'avgRating'],
+          [Sequelize.fn('COUNT', Sequelize.col('Reviews.id')), 'reviewCount']
+        ]
+      },
+      include: [{
+        model: Review,
+        attributes: []
+      }],
+      group: ['Cafe.id'], 
+      order: [['createdAt', 'DESC']]
+    });
     res.json(cafes);
   } catch (error) {
     console.error('Gagal mengambil data kafe:', error);

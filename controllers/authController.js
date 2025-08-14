@@ -1,18 +1,16 @@
 // backend/controllers/authController.js
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 
+// Fungsi register Anda kemungkinan juga perlu disederhanakan
 exports.register = async (req, res) => {
-  // Ambil username dari request body
   const { username, email, password, role } = req.body;
   try {
-    const hashedPassword = await bcrypt.hash(password, 12);
-    // Simpan username ke database
+    // Hashing sekarang otomatis dilakukan oleh hook di model
     const newUser = await User.create({
       username,
       email,
-      password: hashedPassword,
+      password,
       role,
     });
     res.status(201).json({ message: 'User berhasil dibuat!', userId: newUser.id });
@@ -22,22 +20,30 @@ exports.register = async (req, res) => {
   }
 };
 
+// --- PERUBAHAN UTAMA ADA DI FUNGSI LOGIN ---
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(404).json({ message: 'User tidak ditemukan!' });
+    if (!user) {
+      // Kirim 401 Unauthorized agar lebih spesifik
+      return res.status(401).json({ message: 'Email atau password salah.' });
+    }
 
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) return res.status(400).json({ message: 'Password salah!' });
+    // Gunakan method 'verifyPassword' dari model User
+    const isPasswordCorrect = await user.verifyPassword(password);
+    if (!isPasswordCorrect) {
+      return res.status(401).json({ message: 'Email atau password salah.' });
+    }
 
-    // Sertakan username di dalam token
+    // Jika password benar, buat dan kirim token
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role, username: user.username },
       process.env.JWT_KEY,
       { expiresIn: '1h' }
     );
-    res.status(200).json({ token }); // Cukup kirim token
+    res.status(200).json({ token });
+
   } catch (error) {
     console.error('LOGIN ERROR:', error);
     res.status(500).json({ message: 'Gagal login', error: error.message });
