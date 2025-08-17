@@ -8,12 +8,15 @@ const fileUpload = require('../middleware/file-upload');
 // Method: GET, URL: /api/users/profile
 router.get('/profile', isAuth, userController.getMyProfile);
 
-// Rute untuk mengupdate profil PENGGUNA YANG SEDANG LOGIN (username, email)
+// Rute untuk mengupdate profil (username, email)
 // Method: PUT, URL: /api/users/profile
 router.put('/profile', isAuth, userController.updateProfile);
 
-// Rute untuk mengupdate avatar PENGGUNA YANG SEDANG LOGIN
-// Method: PUT, URL: /api/users/profile/avatar
+// Rute untuk mengupdate avatar
+// Method: PUT, URL: /api/users/avatar
 router.put('/profile/avatar', isAuth, fileUpload.single('avatar'), userController.updateAvatar);
+// Rute untuk mendapatkan profil PENGGUNA LAIN berdasarkan ID
+// Method: GET, URL: /api/users/123
+router.get('/:userId', userController.getUserById); // Asumsi Anda punya fungsi ini
 
 module.exports = router;

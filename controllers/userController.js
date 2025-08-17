@@ -95,3 +95,23 @@ exports.updateAvatar = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.getUserById = async (req, res) => {
+  try {
+    const userId = req.params.userId; // Ambil ID dari parameter URL
+
+    const user = await User.findByPk(userId, {
+      // Pilih hanya data publik yang ingin ditampilkan ke orang lain
+      attributes: ['id', 'username', 'avatar'] 
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User tidak ditemukan.' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error mengambil profil by ID:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
