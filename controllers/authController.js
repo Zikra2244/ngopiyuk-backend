@@ -1,16 +1,16 @@
-// backend/controllers/authController.js
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 
-// Fungsi register Anda kemungkinan juga perlu disederhanakan
+// Fungsi register disederhanakan karena hashing password sudah otomatis
 exports.register = async (req, res) => {
   const { username, email, password, role } = req.body;
   try {
-    // Hashing sekarang otomatis dilakukan oleh hook di model
+    // Kita tidak perlu hash password di sini lagi.
+    // Hook 'beforeCreate' di dalam model User.js akan menanganinya.
     const newUser = await User.create({
       username,
       email,
-      password,
+      password, // Kirim password teks biasa, model yang akan mengenkripsi
       role,
     });
     res.status(201).json({ message: 'User berhasil dibuat!', userId: newUser.id });
@@ -20,26 +20,27 @@ exports.register = async (req, res) => {
   }
 };
 
-// --- PERUBAHAN UTAMA ADA DI FUNGSI LOGIN ---
+// Fungsi login diperbarui untuk menggunakan metode verifikasi dari model
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      // Kirim 401 Unauthorized agar lebih spesifik
       return res.status(401).json({ message: 'Email atau password salah.' });
     }
 
-    // Gunakan method 'verifyPassword' dari model User
+    // --- PERUBAHAN KUNCI DI SINI ---
+    // Gunakan metode 'verifyPassword' yang sudah ada di instance 'user'
     const isPasswordCorrect = await user.verifyPassword(password);
     if (!isPasswordCorrect) {
       return res.status(401).json({ message: 'Email atau password salah.' });
     }
+    // ---
 
     // Jika password benar, buat dan kirim token
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role, username: user.username },
-      process.env.JWT_KEY,
+      process.env.JWT_KEY, // Pastikan menggunakan JWT_KEY dari .env
       { expiresIn: '1h' }
     );
     res.status(200).json({ token });

@@ -1,19 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const authMiddleware = require('../middleware/authMiddleware');
-const upload = require('../config/multerConfig.js');
+const isAuth = require('../middleware/is-auth');
+const fileUpload = require('../middleware/file-upload');
 
-// Get user profile (hanya untuk user biasa)
-router.get('/:id', userController.getUserProfile);
+// Rute untuk mendapatkan profil PENGGUNA YANG SEDANG LOGIN
+// Method: GET, URL: /api/users/profile
+router.get('/profile', isAuth, userController.getMyProfile);
 
-// Update profile (hanya untuk user yang login)
-router.put('/', authMiddleware, userController.updateProfile);
+// Rute untuk mengupdate profil PENGGUNA YANG SEDANG LOGIN (username, email)
+// Method: PUT, URL: /api/users/profile
+router.put('/profile', isAuth, userController.updateProfile);
 
-// Update avatar (hanya untuk user yang login)
-router.post('/avatar', authMiddleware, upload.single('avatar'), userController.updateAvatar);
-
-// Endpoint untuk mendapatkan profil user yang login
-router.get('/profile', authMiddleware, userController.getProfile);
+// Rute untuk mengupdate avatar PENGGUNA YANG SEDANG LOGIN
+// Method: PUT, URL: /api/users/profile/avatar
+router.put('/profile/avatar', isAuth, fileUpload.single('avatar'), userController.updateAvatar);
 
 module.exports = router;

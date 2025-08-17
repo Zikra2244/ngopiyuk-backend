@@ -1,107 +1,97 @@
-const User = require('../models/User');
+const { User, Review, Cafe } = require('../models');
+const fs = require('fs');
 
-exports.getUserProfile = async (req, res) => {
+// Mengambil profil lengkap pengguna yang sedang login (dari token)
+exports.getMyProfile = async (req, res) => {
   try {
-    const user = await User.findByPk(req.params.id, {
-      attributes: ['id', 'username', 'email', 'avatar', 'createdAt'],
-      where: { role: 'user' } // Hanya untuk user biasa
+    const userId = req.userData.userId; // Diambil dari middleware is-auth
+    
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'username', 'email', 'avatar'],
+      include: [{
+        model: Review,
+        attributes: ['id', 'title', 'rating'],
+        include: [{ model: Cafe, attributes: ['id', 'name'] }]
+      }]
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ message: 'User tidak ditemukan.' });
     }
 
-    res.json(user);
+    // Format data agar mudah digunakan di frontend
+    const profileData = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      avatar: user.avatar,
+      reviewsCount: user.Reviews ? user.Reviews.length : 0,
+      favoritesCount: 0, // Placeholder
+      reviews: user.Reviews || []
+    };
+
+    res.json(profileData);
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error mengambil profil:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
+// Mengupdate profil (username/email) pengguna yang sedang login
 exports.updateProfile = async (req, res) => {
   try {
     const { username, email } = req.body;
-    const userId = req.user.id;
+    const userId = req.userData.userId;
 
-    // Validasi hanya user biasa yang bisa update profil
-    if (req.user.role !== 'user') {
-      return res.status(403).json({ error: 'Access denied' });
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User tidak ditemukan.' });
     }
+    
+    user.username = username;
+    user.email = email;
+    await user.save();
 
-    const [updated] = await User.update(
-      { username, email },
-      { 
-        where: { 
-          id: userId,
-          role: 'user' // Pastikan hanya user biasa
-        } 
-      }
-    );
-
-    if (!updated) {
-      return res.status(404).json({ error: 'User not found or not authorized' });
-    }
-
-    const updatedUser = await User.findByPk(userId, {
-      attributes: ['id', 'username', 'email', 'avatar']
+    res.json({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      avatar: user.avatar
     });
-
-    res.json(updatedUser);
   } catch (error) {
-    console.error('Error updating profile:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error mengupdate profil:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
+// Mengupdate avatar pengguna yang sedang login
 exports.updateAvatar = async (req, res) => {
   try {
-    const userId = req.user.id;
-    
-    if (req.user.role !== 'user') {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      return res.status(400).json({ message: 'Tidak ada file yang di-upload' });
     }
+    const userId = req.userData.userId;
 
-    const [updated] = await User.update(
-      { avatar: `/uploads/${req.file.filename}` },
-      { 
-        where: { 
-          id: userId,
-          role: 'user'
-        }
-      }
-    );
-
-    if (!updated) {
-      return res.status(404).json({ error: 'User not found or not authorized' });
-    }
-
-    res.json({ avatar: `/uploads/${req.file.filename}` });
-  } catch (error) {
-    console.error('Error updating avatar:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-};
-
-exports.getProfile = async (req, res) => {
-  try {
-    // Dapatkan ID user dari JWT atau session
-    const userId = req.user.id; // Asumsi menggunakan auth middleware
-    
-    const user = await User.findByPk(userId, {
-      attributes: ['id', 'username', 'email', 'avatar', 'role']
-    });
-
+    const user = await User.findByPk(userId);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      fs.unlink(req.file.path, () => {}); // Hapus file yang terlanjur diupload
+      return res.status(404).json({ message: 'User tidak ditemukan.' });
+    }
+    
+    const oldAvatarPath = user.avatar;
+    user.avatar = req.file.path.replace(/\\/g, "/");
+    await user.save();
+
+    // Hapus file avatar lama jika bukan avatar default
+    if (oldAvatarPath && oldAvatarPath !== 'default-avatar.jpg') {
+      fs.unlink(oldAvatarPath, (err) => {
+        if (err) console.error("Gagal menghapus avatar lama:", err);
+      });
     }
 
-    res.json(user);
+    res.json({ avatar: user.avatar });
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error mengupdate avatar:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
