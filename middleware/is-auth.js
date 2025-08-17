@@ -1,31 +1,28 @@
 const jwt = require('jsonwebtoken');
 const { User } = require('../models'); // Impor model User
 
-module.exports = async (req, res, next) => {
-  // Izinkan request OPTIONS untuk lewat
+// Fungsi 1: Cek apakah user sudah login
+const isAuth = async (req, res, next) => {
   if (req.method === 'OPTIONS') {
     return next();
   }
   
   try {
-    // 1. Dapatkan token dari header
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new Error('Autentikasi gagal! Header tidak ditemukan.');
     }
     const token = authHeader.split(' ')[1];
 
-    // 2. Verifikasi token
     const decodedToken = jwt.verify(token, process.env.JWT_KEY);
 
-    // 3. Cari user di database untuk memastikan user masih ada
     const user = await User.findByPk(decodedToken.id);
     if (!user) {
       throw new Error('User tidak ditemukan.');
     }
 
-    // 4. Attach ID user ke request sebagai 'req.userData' agar konsisten
-    req.userData = { userId: user.id };
+    // PENTING: Tambahkan 'role' ke req.userData agar bisa diperiksa nanti
+    req.userData = { userId: user.id, role: user.role };
 
     next();
   } catch (err) {
@@ -33,3 +30,25 @@ module.exports = async (req, res, next) => {
     return res.status(401).json({ message: 'Autentikasi gagal!' });
   }
 };
+
+// Fungsi 2: Cek apakah role adalah 'user'
+const isUser = (req, res, next) => {
+  if (req.userData && req.userData.role === 'user') {
+    next(); // Lanjutkan jika peran adalah 'user'
+  } else {
+    res.status(403).json({ message: 'Akses ditolak. Rute ini hanya untuk user.' });
+  }
+};
+
+// FUNGSI BARU - Fungsi 3: Cek apakah role adalah 'admin'
+const isAdmin = (req, res, next) => {
+  if (req.userData && req.userData.role === 'admin') {
+    next(); // Lanjutkan jika peran adalah 'admin'
+  } else {
+    res.status(403).json({ message: 'Akses ditolak. Rute ini hanya untuk admin.' });
+  }
+};
+
+
+// Ekspor KETIGA fungsi sebagai objek
+module.exports = { isAuth, isUser, isAdmin };

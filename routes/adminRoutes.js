@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
-const authMiddleware = require('../middleware/authMiddleware');
-const adminMiddleware = require('../middleware/adminMiddleware');
 
-// Middleware khusus admin
-router.use(authMiddleware, adminMiddleware);
+// Impor fungsi yang dibutuhkan dari satu file is-auth.js
+const { isAuth, isAdmin } = require('../middleware/is-auth');
+
+// Terapkan middleware untuk SEMUA rute di file ini
+// Pertama, cek apakah sudah login (isAuth), lalu cek apakah dia admin (isAdmin)
+router.use(isAuth, isAdmin);
 
 // Get all users (hanya admin)
 router.get('/users', adminController.getAllUsers);
