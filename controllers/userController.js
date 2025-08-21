@@ -1,8 +1,10 @@
+console.log(">>> userController loaded <<<");
+
 const { User, Review, Cafe } = require("../models");
 const fs = require("fs");
 
 // Mengambil profil lengkap pengguna yang sedang login (dari token)
-exports.getMyProfile = async (req, res) => {
+const getMyProfile = async (req, res) => {
   try {
     const userId = req.userData.userId; // Diambil dari middleware is-auth
 
@@ -11,8 +13,14 @@ exports.getMyProfile = async (req, res) => {
       include: [
         {
           model: Review,
-          attributes: ["id", "title", "rating"],
+          attributes: ["id", "title", "rating", "description", "createdAt"],
           include: [{ model: Cafe, attributes: ["id", "name"] }],
+        },
+        {
+          model: Cafe,
+          as: "FavoriteCafes", // <-- PASTIKAN NAMA INI SAMA PERSIS
+          attributes: ["id", "name", "address", "photoUrl"],
+          through: { attributes: [] },
         },
       ],
     });
@@ -41,7 +49,7 @@ exports.getMyProfile = async (req, res) => {
 };
 
 // Mengupdate profil (username/email) pengguna yang sedang login
-exports.updateProfile = async (req, res) => {
+const updateProfile = async (req, res) => {
   try {
     const { username, email } = req.body;
     const userId = req.userData.userId;
@@ -68,7 +76,7 @@ exports.updateProfile = async (req, res) => {
 };
 
 // Mengupdate avatar pengguna yang sedang login
-exports.updateAvatar = async (req, res) => {
+const updateAvatar = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "Tidak ada file yang di-upload" });
@@ -99,7 +107,7 @@ exports.updateAvatar = async (req, res) => {
   }
 };
 
-exports.getUserById = async (req, res) => {
+const getUserById = async (req, res) => {
   try {
     const userId = req.params.userId; // Ambil ID dari parameter URL
 
@@ -117,4 +125,11 @@ exports.getUserById = async (req, res) => {
     console.error("Error mengambil profil by ID:", error);
     res.status(500).json({ message: "Server error" });
   }
+};
+
+module.exports = {
+  getMyProfile,
+  updateProfile,
+  updateAvatar,
+  getUserById,
 };
