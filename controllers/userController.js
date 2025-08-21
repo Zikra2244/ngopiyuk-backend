@@ -7,7 +7,7 @@ exports.getMyProfile = async (req, res) => {
     const userId = req.userData.userId; // Diambil dari middleware is-auth
     
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'username', 'email', 'avatar'],
+      attributes: ['id', 'username', 'email', 'avatar', 'role'],
       include: [{
         model: Review,
         attributes: ['id', 'title', 'rating'],
@@ -25,6 +25,7 @@ exports.getMyProfile = async (req, res) => {
       username: user.username,
       email: user.email,
       avatar: user.avatar,
+      role: user.role, 
       reviewsCount: user.Reviews ? user.Reviews.length : 0,
       favoritesCount: 0, // Placeholder
       reviews: user.Reviews || []

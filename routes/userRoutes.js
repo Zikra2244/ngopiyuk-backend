@@ -8,7 +8,7 @@ const { isAuth, isUser } = require('../middleware/is-auth');
 const fileUpload = require('../middleware/file-upload');
 
 // Rute untuk mendapatkan profil PENGGUNA YANG SEDANG LOGIN (hanya untuk role 'user')
-router.get('/profile', isAuth, isUser, userController.getMyProfile);
+router.get('/profile', isAuth, userController.getMyProfile);
 
 // Rute untuk mengupdate profil (username, email)
 router.put('/profile', isAuth, isUser, userController.updateProfile);
