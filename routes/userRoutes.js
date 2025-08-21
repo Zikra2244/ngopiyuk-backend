@@ -1,9 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-
-// PERBAIKAN UTAMA ADA DI SINI:
-// Impor fungsi spesifik menggunakan kurung kurawal {}
 const { isAuth, isUser } = require('../middleware/is-auth'); 
 const fileUpload = require('../middleware/file-upload');
 
@@ -15,8 +12,8 @@ router.put('/profile', isAuth, isUser, userController.updateProfile);
 
 // Rute untuk mengupdate avatar
 router.put('/profile/avatar', isAuth, isUser, fileUpload.single('avatar'), userController.updateAvatar);
-
-// Rute untuk mendapatkan profil PENGGUNA LAIN berdasarkan ID
+router.post('/profile/favorites', isAuth, isUser, userController.addFavorite);
+router.delete('/profile/favorites/:cafeId', isAuth, isUser, userController.removeFavorite);
 router.get('/:userId', isAuth, userController.getUserById);
 
 module.exports = router;
