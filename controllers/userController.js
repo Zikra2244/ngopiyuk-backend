@@ -10,7 +10,7 @@ exports.getMyProfile = async (req, res) => {
       attributes: ['id', 'username', 'email', 'avatar', 'role'],
       include: [{
         model: Review,
-        attributes: ['id', 'title', 'rating'],
+        attributes: ['id', 'title', 'rating', 'description', 'createdAt'],
         include: [{ model: Cafe, attributes: ['id', 'name'] }]
       }]
     });
