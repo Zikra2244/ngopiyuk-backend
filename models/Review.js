@@ -12,6 +12,6 @@ const Review = sequelize.define(
     },
     photoUrl: { type: DataTypes.STRING, allowNull: true },
   },
-  { tableName: "Reviews" }
+  { tableName: "Reviews", timestamps: true }
 );
 module.exports = Review;

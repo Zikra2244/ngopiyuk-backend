@@ -9,12 +9,14 @@ const getMyProfile = async (req, res) => {
     const userId = req.userData.userId; // Diambil dari middleware is-auth
 
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'username', 'email', 'avatar', 'role'],
-      include: [{
-        model: Review,
-        attributes: ['id', 'title', 'rating'],
-        include: [{ model: Cafe, attributes: ['id', 'name'] }]
-      }]
+      attributes: ["id", "username", "email", "avatar", "role"],
+      include: [
+        {
+          model: Review,
+          attributes: ["id", "title", "rating", "description", "createdAt"],
+          include: [{ model: Cafe, attributes: ["id", "name"] }],
+        },
+      ],
     });
 
     if (!user) {
