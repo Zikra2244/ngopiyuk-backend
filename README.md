@@ -17,7 +17,7 @@ API untuk aplikasi **NgopiYuk!**, sebuah platform rekomendasi *coffee shop*. Dib
 - **File Upload**: `multer`
 - **Deployment**: Docker
 
-## 🚀 Menjalankan Lokal
+## Menjalankan Lokal
 
 1.  Buat file `.env` dari `.env.example` dan sesuaikan koneksi database Anda.
 2.  Jalankan `npm install`.
