@@ -19,3 +19,6 @@ yarn-error.log*
 
 # Lain-lain
 .DS_Store
+
+# Local Uploads - Jangan di-push karena sudah pakai Supabase Storage
+/uploads
