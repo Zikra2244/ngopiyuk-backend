@@ -8,20 +8,27 @@ const getAllCafes = async (req, res) => {
     const cafes = await Cafe.findAll({
       attributes: {
         include: [
-          [Sequelize.fn("AVG", Sequelize.col("Reviews.rating")), "avgRating"],
-          [Sequelize.fn("COUNT", Sequelize.col("Reviews.id")), "reviewCount"],
+          // Gunakan "Review" (Tunggal) sesuai alias di models/index.js
+          [Sequelize.fn("AVG", Sequelize.col("Review.rating")), "avgRating"],
+          [Sequelize.fn("COUNT", Sequelize.col("Review.id")), "reviewCount"],
         ],
       },
-      include: [{ model: Review, attributes: [] }],
+      include: [
+        {
+          model: Review,
+          as: "Review", // WAJIB: Tambahkan alias ini
+          attributes: [],
+        },
+      ],
       group: ["Cafe.id"],
       order: [["createdAt", "DESC"]],
     });
     res.json(cafes);
   } catch (error) {
+    console.error("Error Get All Cafes:", error);
     res.status(500).json({ message: "Terjadi kesalahan pada server" });
   }
 };
-
 const createCafe = async (req, res) => {
   try {
     if (!req.file) {
