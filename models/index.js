@@ -31,3 +31,5 @@ Cafe.belongsToMany(User, {
   as: "FavoritedByUsers",
   foreignKey: "cafeId",
 });
+
+module.exports = db;

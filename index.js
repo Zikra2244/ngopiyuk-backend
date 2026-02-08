@@ -38,9 +38,12 @@ app.use("/api/favorites", favoriteRoutes);
 // 4. Koneksi Database (authenticate saja, jangan sync)
 db.sequelize
   .authenticate()
-  .then(() => console.log(">>> Database Supabase Terhubung <<<"))
-  .catch((err) => console.error("!!! Gagal Koneksi Database:", err.message));
-
+  .then(() => {
+    console.log(">>> Database Supabase Terhubung <<<");
+  })
+  .catch((err) => {
+    console.error("!!! Gagal Koneksi Database:", err);
+  });
 // 5. Kondisi Environment
 if (process.env.NODE_ENV !== "production") {
   const port = process.env.PORT || 5000;
