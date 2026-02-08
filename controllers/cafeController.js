@@ -16,8 +16,15 @@ const getAllCafes = async (req, res) => {
       include: [
         {
           model: Review,
-          as: "Review", // WAJIB: Tambahkan alias ini
-          attributes: [],
+          as: "Review",
+          attributes: ["id", "title", "description", "rating"],
+          include: [
+            {
+              model: User,
+              as: "User", // Pastikan alias ini ada di models/index.js
+              attributes: ["username", "avatar"],
+            },
+          ],
         },
       ],
       group: ["Cafe.id"],
