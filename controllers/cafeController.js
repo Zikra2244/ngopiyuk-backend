@@ -1,4 +1,4 @@
-const { Cafe, Review } = require("../models");
+const { Cafe, Review, User } = require("../models");
 const { Sequelize } = require("sequelize");
 const supabase = require("../config/supabase"); // Pastikan path ini benar
 const path = require("path");
@@ -8,7 +8,6 @@ const getAllCafes = async (req, res) => {
     const cafes = await Cafe.findAll({
       attributes: {
         include: [
-          // Gunakan "Review" (Tunggal) sesuai alias di models/index.js
           [Sequelize.fn("AVG", Sequelize.col("Review.rating")), "avgRating"],
           [Sequelize.fn("COUNT", Sequelize.col("Review.id")), "reviewCount"],
         ],
@@ -20,14 +19,14 @@ const getAllCafes = async (req, res) => {
           attributes: ["id", "title", "description", "rating"],
           include: [
             {
-              model: User,
-              as: "User", // Pastikan alias ini ada di models/index.js
+              model: User, // <--- Ini yang bikin error karena belum di-require di atas
+              as: "User",
               attributes: ["username", "avatar"],
             },
           ],
         },
       ],
-      group: ["Cafe.id"],
+      group: ["Cafe.id", "Review.id", "Review->User.id"], // Tambahkan grup agar aggregate AVG bekerja
       order: [["createdAt", "DESC"]],
     });
     res.json(cafes);
@@ -36,6 +35,7 @@ const getAllCafes = async (req, res) => {
     res.status(500).json({ message: "Terjadi kesalahan pada server" });
   }
 };
+
 const createCafe = async (req, res) => {
   try {
     if (!req.file) {
