@@ -14,9 +14,15 @@ const getMyProfile = async (req, res) => {
       include: [
         {
           model: Review,
-          as: "Review", // <--- TAMBAHKAN ALIAS INI (Harus sama dengan models/index.js)
+          as: "Review", // Alias tingkat 1: User ke Review
           attributes: ["id", "title", "rating", "description", "createdAt"],
-          include: [{ model: Cafe, attributes: ["id", "name"] }],
+          include: [
+            {
+              model: Cafe,
+              as: "Cafe", // <--- TAMBAHKAN INI (Alias tingkat 2: Review ke Cafe)
+              attributes: ["id", "name"],
+            },
+          ],
         },
       ],
     });
@@ -25,15 +31,14 @@ const getMyProfile = async (req, res) => {
       return res.status(404).json({ message: "User tidak ditemukan." });
     }
 
+    // Pastikan akses data menggunakan alias yang benar (Singular: Review)
     const profileData = {
       id: user.id,
       username: user.username,
       email: user.email,
       avatar: user.avatar,
       role: user.role,
-      // Karena aliasnya "Review", datanya ada di user.Review
       reviewsCount: user.Review ? user.Review.length : 0,
-      favoritesCount: 0,
       reviews: user.Review || [],
     };
 
