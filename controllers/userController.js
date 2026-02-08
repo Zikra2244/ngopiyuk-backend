@@ -1,7 +1,8 @@
 console.log(">>> userController loaded <<<");
 
 const { User, Review, Cafe } = require("../models");
-const fs = require("fs");
+const supabase = require("../config/supabase");
+const path = require("path");
 
 // Mengambil profil lengkap pengguna yang sedang login (dari token)
 const getMyProfile = async (req, res) => {
@@ -76,28 +77,32 @@ const updateAvatar = async (req, res) => {
       return res.status(400).json({ message: "Tidak ada file yang di-upload" });
     }
     const userId = req.userData.userId;
-
     const user = await User.findByPk(userId);
-    if (!user) {
-      fs.unlink(req.file.path, () => {}); // Hapus file yang terlanjur diupload
+
+    if (!user)
       return res.status(404).json({ message: "User tidak ditemukan." });
-    }
 
-    const oldAvatarPath = user.avatar;
-    user.avatar = req.file.path.replace(/\\/g, "/");
-    await user.save();
+    const fileName = `avatar-${userId}-${Date.now()}${path.extname(req.file.originalname)}`;
 
-    // Hapus file avatar lama jika bukan avatar default
-    if (oldAvatarPath && oldAvatarPath !== "default-avatar.jpg") {
-      fs.unlink(oldAvatarPath, (err) => {
-        if (err) console.error("Gagal menghapus avatar lama:", err);
+    const { error } = await supabase.storage
+      .from("cafe-photos")
+      .upload(`avatars/${fileName}`, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: true,
       });
-    }
+
+    if (error) throw error;
+
+    const { data: publicUrlData } = supabase.storage
+      .from("cafe-photos")
+      .getPublicUrl(`avatars/${fileName}`);
+
+    user.avatar = publicUrlData.publicUrl;
+    await user.save();
 
     res.json({ avatar: user.avatar });
   } catch (error) {
-    console.error("Error mengupdate avatar:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Gagal mengupdate avatar." });
   }
 };
 

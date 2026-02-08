@@ -2,6 +2,8 @@
 // PERBAIKAN #1: Tambahkan 'Cafe' ke dalam daftar impor
 // ======================================================================
 const { Review, User, Cafe } = require("../models");
+const supabase = require("../config/supabase");
+const path = require("path");
 
 /**
  * @desc    Mendapatkan semua review untuk satu kafe tertentu
@@ -56,11 +58,25 @@ exports.createReview = async (req, res) => {
     };
 
     if (req.file) {
-      newReviewData.photoUrl = req.file.path.replace(/\\/g, "/");
+      const fileName = `review-${Date.now()}${path.extname(req.file.originalname)}`;
+      const { error } = await supabase.storage
+        .from("cafe-photos") // Bisa gunakan bucket yang sama atau beda
+        .upload(`reviews/${fileName}`, req.file.buffer, {
+          contentType: req.file.mimetype,
+        });
+
+      if (error) throw error;
+
+      const { data: publicUrlData } = supabase.storage
+        .from("cafe-photos")
+        .getPublicUrl(`reviews/${fileName}`);
+
+      newReviewData.photoUrl = publicUrlData.publicUrl;
     }
 
     await Review.create(newReviewData);
 
+    // Ambil ulang review terbaru
     const updatedReviews = await Review.findAll({
       where: { cafeId: cafeId },
       include: [{ model: User, attributes: ["username"] }],
@@ -69,7 +85,6 @@ exports.createReview = async (req, res) => {
 
     res.status(201).json(updatedReviews);
   } catch (error) {
-    console.error("CREATE REVIEW ERROR:", error);
     res.status(500).json({ message: "Gagal membuat review." });
   }
 };
