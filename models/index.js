@@ -4,9 +4,12 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
 // Panggil fungsi model dan berikan instance sequelize
+// models/index.js
 const User = require("./User")(sequelize, DataTypes);
 const Cafe = require("./Cafe")(sequelize, DataTypes);
 const Review = require("./Review")(sequelize, DataTypes);
+// PANGGIL INI AGAR TIDAK ERROR
+const UserCafeFavorite = require("./usercafefavorite")(sequelize, DataTypes);
 
 const db = {
   sequelize,
@@ -14,25 +17,17 @@ const db = {
   User,
   Cafe,
   Review,
+  UserCafeFavorite, // Tambahkan ke objek db
 };
 
-// Definisikan Relasi
-User.hasMany(Cafe, { foreignKey: "userId" });
-Cafe.belongsTo(User, { foreignKey: "userId" });
-User.hasMany(Review, { foreignKey: "userId" });
-Review.belongsTo(User, { foreignKey: "userId" });
-Cafe.hasMany(Review, { foreignKey: "cafeId" });
-Review.belongsTo(Cafe, { foreignKey: "cafeId" });
-
+// ... Definisi Relasi BelongsToMany ...
 User.belongsToMany(Cafe, {
-  through: "UserCafeFavorites",
+  through: UserCafeFavorite, // Gunakan instance modelnya langsung
   as: "FavoriteCafes",
   foreignKey: "userId",
 });
 Cafe.belongsToMany(User, {
-  through: "UserCafeFavorites",
+  through: UserCafeFavorite, // Gunakan instance modelnya langsung
   as: "FavoritedByUsers",
   foreignKey: "cafeId",
 });
-
-module.exports = db;

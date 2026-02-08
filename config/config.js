@@ -17,22 +17,13 @@ module.exports = {
     dialect: "postgres",
     dialectOptions: sslOptions,
   },
-  test: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: "postgres",
-    dialectOptions: sslOptions,
-  },
+  // ... test sama seperti development ...
   production: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
+    // UTAMA: Gunakan variabel tunggal yang sudah ada di Vercel
+    use_env_variable: "DATABASE_URL",
     dialect: "postgres",
     dialectOptions: sslOptions,
+    // Tambahkan ini jika menggunakan pooler Supabase
+    prepareThreshold: 0,
   },
 };
