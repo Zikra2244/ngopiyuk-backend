@@ -1,15 +1,18 @@
 "use strict";
 
+const SUPABASE_STORAGE_URL =
+  "https://oeatryimhibggdwmfrvp.supabase.co/storage/v1/object/public/cafe-photos/";
+
 module.exports = {
-  // FUNGSI 'up' ANDA SUDAH BENAR, JANGAN DIUBAH
   up: async (queryInterface, Sequelize) => {
     return queryInterface.bulkInsert("Reviews", [
       {
         title: "Kopi Susunya Mantap!",
         description:
-          "Kopi Susu Tetangga adalah yang terbaik. Manisnya pas dan kopinya berasa. Selalu jadi pilihan utama kalau lagi di daerah Cipete.",
+          "Kopi Susu Tetangga adalah yang terbaik. Manisnya pas dan kopinya berasa.",
         rating: 5,
-        photoUrl: "https://source.unsplash.com/400x300/?coffee,cup",
+        photoUrl:
+          "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
         cafeId: 1,
         userId: 2,
         createdAt: new Date(),
@@ -18,9 +21,10 @@ module.exports = {
       {
         title: "Tempatnya Enak buat Kerja",
         description:
-          "Suasananya tenang dan wifinya kencang. Cocok banget buat WFC (Work From Cafe). Pilihan biji kopinya juga banyak.",
+          "Suasananya tenang dan wifinya kencang. Cocok banget buat WFC.",
         rating: 4,
-        photoUrl: "https://source.unsplash.com/400x300/?cafe,laptop",
+        photoUrl:
+          "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085",
         cafeId: 2,
         userId: 2,
         createdAt: new Date(),
@@ -29,7 +33,7 @@ module.exports = {
       {
         title: "Rasa kopinya biasa saja",
         description:
-          "Untuk harga segitu, ekspektasi saya lebih tinggi. Mungkin saya salah pesan menu. Tempatnya oke tapi agak ramai.",
+          "Untuk harga segitu, ekspektasi saya lebih tinggi. Tempatnya oke tapi agak ramai.",
         rating: 3,
         photoUrl: null,
         cafeId: 1,
@@ -38,10 +42,10 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        title: "Niger",
-        description: "Negro",
-        rating: 1,
-        photoUrl: "uploads/images/oranghitam.jpeg",
+        title: "Suasana Sangat Nyaman",
+        description: "Pelayanan cepat dan ramah. Dekorasinya juga estetik.",
+        rating: 5,
+        photoUrl: `${SUPABASE_STORAGE_URL}ReviewImage.jpeg`,
         cafeId: 1,
         userId: 3,
         createdAt: new Date(),
@@ -50,14 +54,10 @@ module.exports = {
     ]);
   },
 
-  // ==========================================================
-  // GANTI FUNGSI 'down' LAMA ANDA DENGAN YANG BARU INI
-  // ==========================================================
   down: async (queryInterface, Sequelize) => {
     await queryInterface.bulkDelete("Reviews", null, {});
-    // Perintah ini akan mereset ID Reviews kembali ke 1
     await queryInterface.sequelize.query(
-      'ALTER SEQUENCE "Reviews_id_seq" RESTART WITH 1;'
+      'ALTER SEQUENCE "Reviews_id_seq" RESTART WITH 1;',
     );
   },
 };

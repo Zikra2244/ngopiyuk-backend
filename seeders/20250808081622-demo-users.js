@@ -1,8 +1,9 @@
 "use strict";
 const bcrypt = require("bcryptjs");
+const SUPABASE_STORAGE_URL =
+  "https://oeatryimhibggdwmfrvp.supabase.co/storage/v1/object/public/cafe-photos/avatars/";
 
 module.exports = {
-  // FUNGSI 'up' ANDA SUDAH BENAR, JANGAN DIUBAH
   up: async (queryInterface, Sequelize) => {
     const hashedPasswordAdmin = await bcrypt.hash("admin123", 12);
     const hashedPasswordUser = await bcrypt.hash("user123", 12);
@@ -14,6 +15,7 @@ module.exports = {
         email: "admin@ngopiyuk.com",
         password: hashedPasswordAdmin,
         role: "admin",
+        avatar: `${SUPABASE_STORAGE_URL}admin-default.png`,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -22,6 +24,7 @@ module.exports = {
         email: "user@ngopiyuk.com",
         password: hashedPasswordUser,
         role: "user",
+        avatar: `${SUPABASE_STORAGE_URL}user-default.png`,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -30,23 +33,17 @@ module.exports = {
         email: "zikra@ngopiyuk.com",
         password: hashedPasswordZikra,
         role: "user",
+        avatar: `${SUPABASE_STORAGE_URL}zikra-avatar.png`,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
     ]);
   },
 
-  // ==========================================================
-  // GANTI FUNGSI 'down' LAMA ANDA DENGAN YANG BARU INI
-  // ==========================================================
   down: async (queryInterface, Sequelize) => {
-    // Langkah 1: Hapus semua data dari tabel Users
     await queryInterface.bulkDelete("Users", null, {});
-
-    // Langkah 2 (PENTING): Reset auto-increment ID kembali ke 1
-    // Perintah ini khusus untuk PostgreSQL
     await queryInterface.sequelize.query(
-      'ALTER SEQUENCE "Users_id_seq" RESTART WITH 1;'
+      'ALTER SEQUENCE "Users_id_seq" RESTART WITH 1;',
     );
   },
 };
