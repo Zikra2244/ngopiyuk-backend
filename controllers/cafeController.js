@@ -8,6 +8,7 @@ const getAllCafes = async (req, res) => {
     const cafes = await Cafe.findAll({
       attributes: {
         include: [
+          // Menghitung rata-rata dan total ulasan
           [Sequelize.fn("AVG", Sequelize.col("Review.rating")), "avgRating"],
           [Sequelize.fn("COUNT", Sequelize.col("Review.id")), "reviewCount"],
         ],
@@ -16,19 +17,14 @@ const getAllCafes = async (req, res) => {
         {
           model: Review,
           as: "Review",
-          attributes: ["id", "title", "description", "rating"],
-          include: [
-            {
-              model: User, // <--- Ini yang bikin error karena belum di-require di atas
-              as: "User",
-              attributes: ["username", "avatar"],
-            },
-          ],
+          attributes: [], // Biarkan kosong agar tidak merusak perhitungan COUNT
         },
       ],
-      group: ["Cafe.id", "Review.id", "Review->User.id"], // Tambahkan grup agar aggregate AVG bekerja
+      // PERBAIKAN: Hanya group berdasarkan Cafe.id
+      group: ["Cafe.id"],
       order: [["createdAt", "DESC"]],
     });
+
     res.json(cafes);
   } catch (error) {
     console.error("Error Get All Cafes:", error);
