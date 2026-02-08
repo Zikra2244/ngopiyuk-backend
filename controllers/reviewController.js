@@ -1,34 +1,32 @@
-// ======================================================================
-// PERBAIKAN #1: Tambahkan 'Cafe' ke dalam daftar impor
-// ======================================================================
 const { Review, User, Cafe } = require("../models");
 const supabase = require("../config/supabase");
 const path = require("path");
 
 /**
- * @desc    Mendapatkan semua review untuk satu kafe tertentu
- * @route   GET /api/cafes/:cafeId/reviews
- * @access  Public
+ * @desc    Mendapatkan semua review untuk satu kafe tertentu
+ * @route   GET /api/cafes/:cafeId/reviews
+ * @access  Public
  */
 exports.getReviewsForCafe = async (req, res) => {
   try {
     const { cafeId } = req.params;
 
-    // Opsional tapi direkomendasikan: Cek dulu apakah kafe-nya ada
+    // Cek apakah kafe-nya ada
     const cafeExists = await Cafe.findByPk(cafeId);
     if (!cafeExists) {
       return res.status(404).json({ message: "Kafe tidak ditemukan." });
     }
 
     const reviews = await Review.findAll({
-      where: { cafeId }, // ====================================================================== // PERBAIKAN #2: Gunakan satu 'include' untuk menyertakan model User // ======================================================================
+      where: { cafeId },
       include: [
         {
           model: User,
-          attributes: ["username"], // Hanya ambil username dari penulis review
+          as: "User", // WAJIB: Harus sama dengan alias di models/index.js
+          attributes: ["username", "avatar"], // Ambil info penulis review
         },
       ],
-      order: [["createdAt", "DESC"]], // Tampilkan review terbaru di atas
+      order: [["createdAt", "DESC"]], // Review terbaru di atas
     });
 
     res.status(200).json(reviews);
@@ -39,33 +37,34 @@ exports.getReviewsForCafe = async (req, res) => {
 };
 
 /**
- * @desc    Membuat review baru untuk satu kafe
- * @route   POST /api/cafes/:cafeId/reviews
- * @access  Private (Memerlukan login)
+ * @desc    Membuat review baru untuk satu kafe
+ * @route   POST /api/cafes/:cafeId/reviews
+ * @access  Private (Memerlukan login)
  */
 exports.createReview = async (req, res) => {
   try {
     const { cafeId } = req.params;
     const { title, description, rating } = req.body;
-    const userId = req.userData.userId;
+    const userId = req.userData.userId; // Dari middleware is-auth
 
     const newReviewData = {
       title,
       description,
-      rating,
+      rating: parseInt(rating, 10),
       cafeId: parseInt(cafeId, 10),
       userId,
     };
 
+    // Logika Upload Foto ke Supabase (Jika ada)
     if (req.file) {
       const fileName = `review-${Date.now()}${path.extname(req.file.originalname)}`;
-      const { error } = await supabase.storage
-        .from("cafe-photos") // Bisa gunakan bucket yang sama atau beda
+      const { error: uploadError } = await supabase.storage
+        .from("cafe-photos")
         .upload(`reviews/${fileName}`, req.file.buffer, {
           contentType: req.file.mimetype,
         });
 
-      if (error) throw error;
+      if (uploadError) throw uploadError;
 
       const { data: publicUrlData } = supabase.storage
         .from("cafe-photos")
@@ -74,17 +73,25 @@ exports.createReview = async (req, res) => {
       newReviewData.photoUrl = publicUrlData.publicUrl;
     }
 
+    // Simpan Review Baru
     await Review.create(newReviewData);
 
-    // Ambil ulang review terbaru
+    // Ambil ulang daftar review terbaru agar frontend langsung update
     const updatedReviews = await Review.findAll({
       where: { cafeId: cafeId },
-      include: [{ model: User, attributes: ["username"] }],
+      include: [
+        {
+          model: User,
+          as: "User", // Tetap sertakan alias di sini
+          attributes: ["username", "avatar"],
+        },
+      ],
       order: [["createdAt", "DESC"]],
     });
 
     res.status(201).json(updatedReviews);
   } catch (error) {
+    console.error("CREATE REVIEW ERROR:", error);
     res.status(500).json({ message: "Gagal membuat review." });
   }
 };
