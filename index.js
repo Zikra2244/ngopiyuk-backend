@@ -1,10 +1,9 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
 const db = require("./models");
 
-// Impor semua file rute
+// Impor Rute
 const authRoutes = require("./routes/authRoutes");
 const cafeRoutes = require("./routes/cafeRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -12,7 +11,7 @@ const favoriteRoutes = require("./routes/favoriteRoutes");
 
 const app = express();
 
-// Middleware
+// 1. Middleware Global
 app.use(
   cors({
     origin: "*",
@@ -22,36 +21,33 @@ app.use(
 );
 app.use(express.json());
 
-// Rute dasar untuk pengujian
+// 2. Rute Dasar & Health Check
 app.get("/", (req, res) => {
-  res.send("Selamat datang di API NgopiYuk! (Vercel Serverless)");
+  res.status(200).json({
+    message: "API NgopiYuk Berjalan!",
+    status: "Connected to Vercel Serverless",
+  });
 });
 
-// Gunakan rute-rute utama dengan prefix API
+// 3. Implementasi Rute API
 app.use("/api/auth", authRoutes);
 app.use("/api/cafes", cafeRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/favorites", favoriteRoutes);
 
-// KONEKSI DATABASE
-// Di Vercel, kita sebaiknya tidak melakukan .sync() di setiap request.
-// Namun untuk tahap awal, kita pastikan koneksi terjalin.
+// 4. Koneksi Database (authenticate saja, jangan sync)
 db.sequelize
   .authenticate()
-  .then(() => {
-    console.log("Koneksi database ke Supabase berhasil.");
-  })
-  .catch((err) => {
-    console.error("Gagal koneksi database:", err);
-  });
+  .then(() => console.log(">>> Database Supabase Terhubung <<<"))
+  .catch((err) => console.error("!!! Gagal Koneksi Database:", err.message));
 
-// HANYA JALANKAN APP.LISTEN DI LOKAL
+// 5. Kondisi Environment
 if (process.env.NODE_ENV !== "production") {
   const port = process.env.PORT || 5000;
   app.listen(port, () => {
-    console.log(`Server berjalan di http://localhost:${port}`);
+    console.log(`Server Lokal berjalan di http://localhost:${port}`);
   });
 }
 
-// WAJIB UNTUK VERCEL: Ekspor app
+// 6. WAJIB: Ekspor app untuk Vercel
 module.exports = app;
