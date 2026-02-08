@@ -7,13 +7,14 @@ const path = require("path");
 // Mengambil profil lengkap pengguna yang sedang login (dari token)
 const getMyProfile = async (req, res) => {
   try {
-    const userId = req.userData.userId; // Diambil dari middleware is-auth
+    const userId = req.userData.userId;
 
     const user = await User.findByPk(userId, {
       attributes: ["id", "username", "email", "avatar", "role"],
       include: [
         {
           model: Review,
+          as: "Review", // <--- TAMBAHKAN ALIAS INI (Harus sama dengan models/index.js)
           attributes: ["id", "title", "rating", "description", "createdAt"],
           include: [{ model: Cafe, attributes: ["id", "name"] }],
         },
@@ -24,16 +25,16 @@ const getMyProfile = async (req, res) => {
       return res.status(404).json({ message: "User tidak ditemukan." });
     }
 
-    // Format data agar mudah digunakan di frontend
     const profileData = {
       id: user.id,
       username: user.username,
       email: user.email,
       avatar: user.avatar,
       role: user.role,
-      reviewsCount: user.Reviews ? user.Reviews.length : 0,
-      favoritesCount: 0, // Placeholder
-      reviews: user.Reviews || [],
+      // Karena aliasnya "Review", datanya ada di user.Review
+      reviewsCount: user.Review ? user.Review.length : 0,
+      favoritesCount: 0,
+      reviews: user.Review || [],
     };
 
     res.json(profileData);
