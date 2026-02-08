@@ -22,3 +22,5 @@ yarn-error.log*
 
 # Local Uploads - Jangan di-push karena sudah pakai Supabase Storage
 /uploads
+.vercel
+.env*.local
